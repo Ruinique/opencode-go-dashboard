@@ -2,6 +2,8 @@
 
 自托管的 OpenCode Go 额度管理面板，用于集中查看多个账号的 Rolling / Weekly / Monthly 用量。Auth Cookie 仅保存在服务端 Cloudflare D1，不会返回给浏览器。
 
+![OpenCode Go 额度管理面板](docs/screenshot.jpg)
+
 ## 功能
 
 - 密码保护的管理后台
@@ -27,7 +29,7 @@
 ### 1. 克隆并安装依赖
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/opencode-go-dashboard.git
+git clone https://github.com/Ruinique/opencode-go-dashboard.git
 cd opencode-go-dashboard
 npm install
 ```
