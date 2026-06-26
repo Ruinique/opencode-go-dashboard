@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "opencode-go-dashboard",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-06-01",
+  "workers_dev": true,
+  // Optional: bind a custom domain after deploy
+  // "routes": [
+  //   {
+  //     "pattern": "dashboard.example.com",
+  //     "custom_domain": true
+  //   }
+  // ],
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "opencode-go-dashboard",
+      // Run: wrangler d1 create opencode-go-dashboard
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
