@@ -1,86 +1,33 @@
 # OpenCode Go Dashboard
 
-自托管的 OpenCode Go 额度管理面板，用于集中查看多个账号的 Rolling / Weekly / Monthly 用量。Auth Cookie 仅保存在服务端 Cloudflare D1，不会返回给浏览器。
+OpenCode Go Dashboard 是一个基于 Cloudflare 全技术栈的自托管额度查询面板。它集中展示多个 OpenCode Go 账号的 Rolling / Weekly / Monthly 用量，Auth Cookie 仅保存在服务端 D1，不会返回给浏览器。
+
+## 功能预览
+
+以下截图使用脱敏示例数据，账号名称、Workspace ID 和更新时间已打码处理。
 
 ![OpenCode Go 额度管理面板](docs/screenshot.jpg)
 
 ## 功能
 
-- 密码保护的管理后台
-- 多账号增删改查
-- 一键刷新单个或全部账号额度
-- 用量接近上限时高亮提示
-- 部署在 Cloudflare Workers，全球边缘节点访问
-
-## 技术栈
-
-- **前端**: React 19 + Vite + Tailwind CSS + [Cloudflare Kumo](https://github.com/cloudflare/kumo)
-- **后端**: Cloudflare Workers
-- **数据库**: Cloudflare D1 (SQLite)
-
-## 前置要求
-
-- [Node.js](https://nodejs.org/) 20+
-- [Cloudflare 账号](https://dash.cloudflare.com/sign-up)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) v4+
+- 密码保护的管理后台。
+- 多账号增删改查。
+- 一键刷新单个或全部账号额度。
+- 用量接近上限时高亮提示。
+- 部署在 Cloudflare Workers，全球边缘节点访问。
+- 前端 React + Kumo，后端 Worker API，数据存储 D1，一套 `wrangler deploy` 完成部署。
 
 ## 快速开始
 
-### 1. 克隆并安装依赖
+下面这组命令可以在本地完成构建和预览。生产部署前需要先创建 D1 数据库并配置管理密码。
 
 ```bash
 git clone https://github.com/Ruinique/opencode-go-dashboard.git
 cd opencode-go-dashboard
 npm install
-```
-
-### 2. 登录 Cloudflare
-
-```bash
-npx wrangler login
-```
-
-### 3. 创建 D1 数据库
-
-```bash
-npx wrangler d1 create opencode-go-dashboard
-```
-
-命令会输出 `database_id`，将其填入 `wrangler.jsonc` 中 `d1_databases[0].database_id` 字段，替换默认的占位符 `00000000-0000-0000-0000-000000000000`。
-
-### 4. 配置管理密码
-
-本地开发时，复制示例文件并设置密码：
-
-```bash
 cp .dev.vars.example .dev.vars
-```
-
-编辑 `.dev.vars`：
-
-```env
-ADMIN_PASSWORD=your-strong-password-here
-```
-
-生产环境通过 Wrangler Secret 设置（不要提交到 Git）：
-
-```bash
-npx wrangler secret put ADMIN_PASSWORD
-```
-
-### 5. 执行数据库迁移
-
-```bash
-# 本地开发
+# 编辑 .dev.vars，设置 ADMIN_PASSWORD
 npm run db:migrate:local
-
-# 生产环境
-npm run db:migrate:remote
-```
-
-### 6. 本地开发
-
-```bash
 npm run preview
 ```
 
@@ -92,13 +39,62 @@ npm run preview
 npm run dev
 ```
 
-## 部署到 Cloudflare
+如果希望让 AI agent 直接帮你部署，可以把下面这段作为提示词发给它：
 
-### 标准部署（workers.dev 子域名）
+```text
+请帮我部署 opencode-go-dashboard：从 https://github.com/Ruinique/opencode-go-dashboard.git 克隆项目并安装依赖；登录 Cloudflare（wrangler login）；创建 D1 数据库 opencode-go-dashboard 并把 database_id 写入 wrangler.jsonc；通过 wrangler secret put ADMIN_PASSWORD 设置管理密码；执行 npm run db:migrate:remote 完成迁移；最后运行 npm run deploy 部署到 Cloudflare Workers，并告诉我访问地址。
+```
 
-确保已完成上述步骤 3–5，然后：
+## 配置
+
+### 前置要求
+
+- [Node.js](https://nodejs.org/) 20+
+- [Cloudflare 账号](https://dash.cloudflare.com/sign-up)
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) v4+
+
+### D1 数据库
 
 ```bash
+npx wrangler login
+npx wrangler d1 create opencode-go-dashboard
+```
+
+命令会输出 `database_id`，将其填入 `wrangler.jsonc` 中 `d1_databases[0].database_id`，替换默认占位符 `00000000-0000-0000-0000-000000000000`。
+
+### 环境变量
+
+| 变量 | 含义 | 设置方式 |
+| --- | --- | --- |
+| `ADMIN_PASSWORD` | 管理后台登录密码 | `.dev.vars`（本地）/ `wrangler secret`（生产） |
+
+本地开发：
+
+```bash
+cp .dev.vars.example .dev.vars
+```
+
+编辑 `.dev.vars`：
+
+```env
+ADMIN_PASSWORD=your-strong-password-here
+```
+
+生产环境：
+
+```bash
+npx wrangler secret put ADMIN_PASSWORD
+```
+
+## 部署到 Cloudflare
+
+确保已完成 D1 创建、密码配置和数据库迁移，然后执行：
+
+```bash
+# 生产环境迁移
+npm run db:migrate:remote
+
+# 构建并部署
 npm run deploy
 ```
 
@@ -117,11 +113,7 @@ npm run deploy
 ]
 ```
 
-域名需已在 Cloudflare 账号中，然后重新部署：
-
-```bash
-npm run deploy
-```
+域名需已在 Cloudflare 账号中，然后重新执行 `npm run deploy`。
 
 ## 使用说明
 
@@ -151,19 +143,16 @@ npm run deploy
 └── index.html
 ```
 
-## 环境变量
+## 隐私边界
 
-| 变量 | 说明 | 设置方式 |
-|------|------|----------|
-| `ADMIN_PASSWORD` | 管理后台登录密码 | `.dev.vars`（本地）/ `wrangler secret`（生产） |
+本面板需要你在服务端存储 OpenCode 的 Auth Cookie 才能查询额度。Cookie 具有账号访问权限，请仅部署在受信任的环境中，并使用强密码保护管理后台。不要将 `.dev.vars` 提交到版本控制，也不要在公开场合分享 Cookie 或管理密码。
 
-## 安全提示
-
-- **务必使用强密码**作为 `ADMIN_PASSWORD`
-- Auth Cookie 具有账号访问权限，请妥善保管服务端环境
-- 不要将 `.dev.vars` 提交到版本控制
-- 建议仅在内网或受信任的团队成员间共享访问地址
+额度数据来自 opencode.ai Dashboard 页面解析，OpenCode 页面结构变更时可能需要更新代码。
 
 ## 许可证
 
-[MIT](LICENSE)
+MIT
+
+## 社区
+
+本开源项目已链接并认可 [LINUX DO 社区](https://linux.do)。
