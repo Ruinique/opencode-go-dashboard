@@ -2,6 +2,7 @@ import type {
   Account,
   AccountFormData,
   AccountWithUsage,
+  UsageHistoryResult,
   UsageResult,
 } from "../types";
 
@@ -17,7 +18,15 @@ async function request<T>(
     },
   });
 
-  const data = (await res.json()) as T & { error?: string };
+  let data: T & { error?: string };
+  try {
+    data = (await res.json()) as T & { error?: string };
+  } catch {
+    if (!res.ok) {
+      throw new Error(`请求失败 (HTTP ${res.status})`);
+    }
+    throw new Error("响应格式异常，非 JSON 内容");
+  }
   if (!res.ok) {
     throw new Error(data.error ?? `请求失败 (${res.status})`);
   }
@@ -84,4 +93,15 @@ export async function refreshOne(id: string): Promise<UsageResult> {
     { method: "POST" }
   );
   return data.usage;
+}
+
+export async function fetchUsageHistory(
+  id: string,
+  cursor: number = 0
+): Promise<UsageHistoryResult> {
+  const data = await request<{ id: string; history: UsageHistoryResult }>(
+    `/api/accounts/${id}/history?cursor=${encodeURIComponent(cursor)}`,
+    { method: "GET" }
+  );
+  return data.history;
 }

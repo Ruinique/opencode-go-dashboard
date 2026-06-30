@@ -3,6 +3,7 @@ import { ArrowsClockwise, Plus, SignOut } from "@phosphor-icons/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AccountDialog from "./components/AccountDialog";
 import AccountTable from "./components/AccountTable";
+import HistoryDialog from "./components/HistoryDialog";
 import LoginForm from "./components/LoginForm";
 import {
   checkAuth,
@@ -26,6 +27,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [historyAccount, setHistoryAccount] = useState<AccountWithUsage | null>(null);
 
   const loadAccounts = useCallback(async () => {
     setLoading(true);
@@ -255,6 +257,7 @@ export default function App() {
             setDialogOpen(true);
           }}
           onDelete={handleDelete}
+          onHistory={(account) => setHistoryAccount(account)}
         />
       )}
 
@@ -263,6 +266,15 @@ export default function App() {
         onOpenChange={setDialogOpen}
         account={editingAccount}
         onSave={handleSave}
+      />
+
+      <HistoryDialog
+        open={historyAccount !== null}
+        onOpenChange={(open) => {
+          if (!open) setHistoryAccount(null);
+        }}
+        accountId={historyAccount?.id ?? ""}
+        accountName={historyAccount?.name ?? ""}
       />
 
       <Text

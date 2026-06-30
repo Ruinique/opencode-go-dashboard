@@ -1,6 +1,7 @@
 import { Button, Text } from "@cloudflare/kumo";
 import {
   ArrowsClockwise,
+  ClockCounterClockwise,
   PencilSimple,
   Trash,
 } from "@phosphor-icons/react";
@@ -13,6 +14,7 @@ interface Props {
   onRefresh: (id: string) => void;
   onEdit: (account: AccountWithUsage) => void;
   onDelete: (account: AccountWithUsage) => void;
+  onHistory: (account: AccountWithUsage) => void;
 }
 
 export default function AccountTable({
@@ -21,6 +23,7 @@ export default function AccountTable({
   onRefresh,
   onEdit,
   onDelete,
+  onHistory,
 }: Props) {
   if (accounts.length === 0) {
     return (
@@ -77,6 +80,14 @@ export default function AccountTable({
                   disabled={refreshing}
                 >
                   {refreshing ? "查询中" : "刷新"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={ClockCounterClockwise}
+                  onClick={() => onHistory(account)}
+                >
+                  历史
                 </Button>
                 <Button
                   variant="secondary"
