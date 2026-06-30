@@ -11,11 +11,17 @@ import {
   listAccounts,
   updateAccount,
 } from "./db";
-import { fetchGoQuota, validateAuthCookie, validateWorkspaceId } from "./quota";
+import {
+  fetchGoQuota,
+  fetchGoUsageHistory,
+  validateAuthCookie,
+  validateWorkspaceId,
+} from "./quota";
 import type {
   AccountWithUsage,
   CreateAccountBody,
   UpdateAccountBody,
+  UsageHistoryItem,
   UsageResult,
 } from "./types";
 
@@ -89,6 +95,13 @@ async function handleApi(
   const refreshMatch = url.pathname.match(/^\/api\/accounts\/([^/]+)\/refresh$/);
   if (refreshMatch && request.method === "POST") {
     return handleRefreshOne(env, refreshMatch[1]);
+  }
+
+  const historyMatch = url.pathname.match(
+    /^\/api\/accounts\/([^/]+)\/history$/
+  );
+  if (historyMatch && request.method === "GET") {
+    return handleHistory(request, env, historyMatch[1]);
   }
 
   if (url.pathname === "/api/refresh" && request.method === "POST") {
@@ -247,6 +260,36 @@ async function handleRefreshAll(
   );
 
   return json({ accounts: results });
+}
+
+async function handleHistory(
+  request: Request,
+  env: Env,
+  id: string
+): Promise<Response> {
+  const url = new URL(request.url);
+  const cursorParam = Number(url.searchParams.get("cursor") ?? "0");
+  const cursor = Number.isFinite(cursorParam) && cursorParam >= 0 ? cursorParam : 0;
+
+  const row = await getAccountRow(env.DB, id);
+  if (!row) return json({ error: "账号不存在" }, 404);
+
+  try {
+    const history = await fetchGoUsageHistory(
+      row.workspace_id,
+      row.auth_cookie,
+      cursor
+    );
+    return json({ id, history });
+  } catch (err) {
+    const history = {
+      items: [] as UsageHistoryItem[],
+      fetchedAt: new Date().toISOString(),
+      cursor,
+      error: err instanceof Error ? err.message : "查询历史失败",
+    };
+    return json({ id, history });
+  }
 }
 
 function json(data: unknown, status = 200): Response {

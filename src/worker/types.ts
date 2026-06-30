@@ -50,3 +50,27 @@ export interface UpdateAccountBody {
   authCookie?: string;
   notes?: string;
 }
+
+export interface UsageHistoryItem {
+  id: string;
+  timeCreated: string;
+  model: string;
+  provider: string;
+  inputTokens: number;
+  outputTokens: number;
+  reasoningTokens: number;
+  cacheReadTokens: number;
+  cacheWrite5mTokens: number | null;
+  cacheWrite1hTokens: number | null;
+  cost: number;
+  keyID: string;
+  sessionID: string;
+  plan: string | null;
+}
+
+export interface UsageHistoryResult {
+  items: UsageHistoryItem[];
+  fetchedAt: string;
+  cursor: number;
+  error?: string;
+}
